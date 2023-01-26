@@ -2,6 +2,7 @@ package com.bignerdranch.android.geoquiz
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -10,9 +11,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var trueButton: Button
     private lateinit var falseButton: Button
-    private lateinit var nextButton: Button
+    private lateinit var nextButton: ImageButton
     private lateinit var questionTextView: TextView
-    private lateinit var prevButton: Button
+    private lateinit var prevButton: ImageButton
 
     // create a list of question objects, each question object with a single question and the answer for the question
     private val questionBank = listOf(
