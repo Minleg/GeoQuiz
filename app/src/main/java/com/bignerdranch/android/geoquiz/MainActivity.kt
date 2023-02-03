@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prevButton: ImageButton
 
     private var quizScore = 0
+    private var quizScoreList = mutableListOf<Int>()
 
     // create a list of question objects, each question object with a single question and the answer for the question
     private val questionBank = listOf(
@@ -58,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             updateQuestion()
             buttonDisable(true)
             if (currentIndex == 0) { // signifies that we are at the start of the question again
-                percentageScore(quizScore)
+                percentageScore(quizScoreList.sum())
             }
         }
 
@@ -73,11 +74,14 @@ class MainActivity : AppCompatActivity() {
         prevButton.setOnClickListener {
             if (currentIndex == 0) { // if index is 0, point to the last question in the list
                 currentIndex = questionBank.size - 1
+                quizScoreList.removeLast()
             } else { // point to the previous question otherwise
                 currentIndex -= 1
+                quizScoreList.removeLast()
             }
             updateQuestion()
             buttonDisable(true)
+
         }
 
         // puts the first question in the text view
@@ -122,6 +126,9 @@ class MainActivity : AppCompatActivity() {
 
         if (userAnswer == correctAnswer) { // if answer is correct, score is updated
             quizScore++
+            quizScoreList.add(1)
+        } else {
+            quizScoreList.add(0)
         }
 
         val messageResId = if (userAnswer == correctAnswer) {
@@ -145,5 +152,6 @@ class MainActivity : AppCompatActivity() {
         val scoreMessage = "You score $score out of ${questionBank.size}"
         Toast.makeText(this, scoreMessage, Toast.LENGTH_LONG).show()
         quizScore = 0 // resets the score to 0
+        quizScoreList.clear()
     }
 }
