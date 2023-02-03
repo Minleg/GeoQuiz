@@ -1,11 +1,14 @@
 package com.bignerdranch.android.geoquiz
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+
+private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,6 +17,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nextButton: ImageButton
     private lateinit var questionTextView: TextView
     private lateinit var prevButton: ImageButton
+
+    private var quizScore = 0
 
     // create a list of question objects, each question object with a single question and the answer for the question
     private val questionBank = listOf(
@@ -29,6 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "OnCreate(Bundle?) called")
         setContentView(R.layout.activity_main)
 
         trueButton = findViewById(R.id.true_button)
@@ -39,21 +45,28 @@ class MainActivity : AppCompatActivity() {
 
         trueButton.setOnClickListener {
             checkAnswer(true)
+            buttonDisable(false)
         }
 
         falseButton.setOnClickListener {
             checkAnswer(false)
+            buttonDisable(false)
         }
 
         nextButton.setOnClickListener {
             currentIndex = (currentIndex + 1) % questionBank.size
             updateQuestion()
+            buttonDisable(true)
+            if (currentIndex == 0) { // signifies that we are at the start of the question again
+                percentageScore(quizScore)
+            }
         }
 
         // next question can be loaded by clicking the question text view
         questionTextView.setOnClickListener {
             currentIndex = (currentIndex + 1) % questionBank.size
             updateQuestion()
+            buttonDisable(true)
         }
 
         // if previous button is clicked
@@ -64,10 +77,36 @@ class MainActivity : AppCompatActivity() {
                 currentIndex -= 1
             }
             updateQuestion()
+            buttonDisable(true)
         }
 
         // puts the first question in the text view
         updateQuestion()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "OnStart() called")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "OnResume() called")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "OnPause() called")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "OnStop() called")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "OnDestroy() called")
     }
 
     private fun updateQuestion() { // gets the question at the index
@@ -78,14 +117,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkAnswer(userAnswer: Boolean) {
         /* Checks the answer stored in the list with the user's answer */
-        val correctAnswer = questionBank[currentIndex].answer // gets the answer for the question in the list
+        val correctAnswer =
+            questionBank[currentIndex].answer // gets the answer for the question in the list
+
+        if (userAnswer == correctAnswer) { // if answer is correct, score is updated
+            quizScore++
+        }
 
         val messageResId = if (userAnswer == correctAnswer) {
             R.string.correct_toast // correct answer toast is set
         } else {
             R.string.incorrect_toast
         }
+        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
+            .show() // shows the user , toast with message whether they are correct or not
+    }
 
-        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show() // shows the user , toast with message whether they are correct or not
+    private fun buttonDisable(enable: Boolean) {
+        /* This function disables or enables the true and false choice button */
+        trueButton.isEnabled = enable
+        falseButton.isEnabled = enable
+    }
+
+    private fun percentageScore(score: Int) {
+        /* This method is called after coming to the first question again after answering all the questions, the score
+        * obtained is displayed in a toast*/
+        val scoreMessage = "You score $score out of ${questionBank.size}"
+        Toast.makeText(this, scoreMessage, Toast.LENGTH_LONG).show()
+        quizScore = 0 // resets the score to 0
     }
 }
