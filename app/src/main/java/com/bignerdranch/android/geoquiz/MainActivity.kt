@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prevButton: ImageButton
 
     private var quizScore = 0
+    private var correctAnswerFlag = false
 
     // create a list of question objects, each question object with a single question and the answer for the question
     private val questionBank = listOf(
@@ -78,6 +79,9 @@ class MainActivity : AppCompatActivity() {
             }
             updateQuestion()
             buttonDisable(true)
+            if (correctAnswerFlag) { // if previous question was correct, score is deducted to resume count
+                quizScore--
+            }
         }
 
         // puts the first question in the text view
@@ -121,6 +125,7 @@ class MainActivity : AppCompatActivity() {
             questionBank[currentIndex].answer // gets the answer for the question in the list
 
         if (userAnswer == correctAnswer) { // if answer is correct, score is updated
+            correctAnswerFlag = true
             quizScore++
         }
 
