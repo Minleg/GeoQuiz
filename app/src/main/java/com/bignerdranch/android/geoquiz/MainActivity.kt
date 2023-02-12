@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity() {
 
         nextButton.setOnClickListener {
             quizViewModel.moveToNext()
+            quizViewModel.isCheater = false
             updateQuestion()
             buttonDisable(true)
             if (quizViewModel.currentIndex == 0) { // signifies that we are at the start of the question again
@@ -199,6 +200,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun buttonDisable(enable: Boolean) {
         /* This function disables or enables the true and false choice button */
+        // todo - it needs to maintain status of button - enabled or disable on orientation changes
         trueButton.isEnabled = enable
         falseButton.isEnabled = enable
     }
