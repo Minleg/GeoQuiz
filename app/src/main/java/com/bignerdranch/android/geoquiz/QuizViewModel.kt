@@ -23,10 +23,14 @@ class QuizViewModel : ViewModel() {
         Question(R.string.question_mideast, false),
         Question(R.string.question_africa, false),
         Question(R.string.question_americas, true),
-        Question(R.string.question_asia, true)
+        Question(R.string.question_asia, true),
     )
 
     var currentIndex = 0
+
+    // to hold the value that CheatActivity is passing back
+    var isCheater = false
+    // users cheat status is part of UI, better to save it in viewModel so that value persists across a configuration changes
 
     val currentQuestionAnswer: Boolean
         get() = questionBank[currentIndex].answer

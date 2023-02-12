@@ -1,5 +1,7 @@
 package com.bignerdranch.android.geoquiz
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -11,11 +13,15 @@ import androidx.lifecycle.ViewModelProviders
 
 private const val TAG = "MainActivity"
 private const val KEY_INDEX = "index"
+private const val REQUEST_CODE_CHEAT =
+    0 // user defined integer that is sent to the child activity and then received back by the parent
+// It is used when an activity starts more than one type of child activity and needs to know who is reporting back
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var trueButton: Button
     private lateinit var falseButton: Button
+    private lateinit var cheatButton: Button
     private lateinit var nextButton: ImageButton
     private lateinit var questionTextView: TextView
     private lateinit var prevButton: ImageButton
@@ -26,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private val quizViewModel: QuizViewModel by lazy { // lazy initialization allows us to use val here instead of var
         ViewModelProviders.of(this).get(QuizViewModel::class.java)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "OnCreate(Bundle?) called")
@@ -43,6 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         trueButton = findViewById(R.id.true_button)
         falseButton = findViewById(R.id.false_button)
+        cheatButton = findViewById(R.id.cheat_button)
         nextButton = findViewById(R.id.next_button)
         questionTextView = findViewById(R.id.question_text_view)
         prevButton = findViewById(R.id.prev_button)
@@ -87,8 +95,37 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        cheatButton.setOnClickListener {
+            // Start CheatActivity
+            // val intent = Intent(this, CheatActivity::class.java)
+            val answerIsTrue = quizViewModel.currentQuestionAnswer
+            val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+            // startActivity(intent)
+            startActivityForResult(
+                intent,
+                REQUEST_CODE_CHEAT,
+            ) // associates the CheatActivity and MainActivity with the code
+        }
+
         // puts the first question in the text view
         updateQuestion()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        /* this method pulls the value out of the result sent back from CheatActivity */
+        super.onActivityResult(requestCode, resultCode, data)
+
+        // Log.i(TAG, "OnActivityResult called, $requestCode")
+
+        if (requestCode == REQUEST_CODE_CHEAT) { // If it is the same activity which was called initially
+            // Log.i(TAG, quizViewModel.isCheater.toString())
+            quizViewModel.isCheater = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+            Log.i(TAG, "onActivityResult requestCode ${quizViewModel.isCheater}")
+        }
+
+        if (resultCode != Activity.RESULT_OK) { // if user had pressed back button from CheatActivity, it would be RESULT_CANCELED
+            return
+        }
     }
 
     override fun onStart() {
@@ -124,13 +161,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateQuestion() { // gets the question at the index
         // Log.d(TAG, "Updating question text", Exception())
-        val questionTextResId = quizViewModel.currentQuestionText // the resource id for the question
+        val questionTextResId =
+            quizViewModel.currentQuestionText // the resource id for the question
         questionTextView.setText(questionTextResId) // sets the question textview with the question on the index
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
         /* Checks the answer stored in the list with the user's answer */
-        val correctAnswer = quizViewModel.currentQuestionAnswer // gets the answer for the question in the list
+        val correctAnswer =
+            quizViewModel.currentQuestionAnswer // gets the answer for the question in the list
 
         if (userAnswer == correctAnswer) { // if answer is correct, score is updated
             correctAnswerFlag = true
@@ -138,11 +177,21 @@ class MainActivity : AppCompatActivity() {
         } else {
             correctAnswerFlag = false
         }
-
+        /*
         val messageResId = if (userAnswer == correctAnswer) {
             R.string.correct_toast // correct answer toast is set
         } else {
             R.string.incorrect_toast
+        }
+         */
+        Log.i(
+            TAG,
+            "checkAnswer cheatStatus ${quizViewModel.isCheater}",
+        )
+        val messageResId = when {
+            quizViewModel.isCheater -> R.string.judgment_toast
+            userAnswer == correctAnswer -> R.string.correct_toast
+            else -> R.string.incorrect_toast
         }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
             .show() // shows the user , toast with message whether they are correct or not
