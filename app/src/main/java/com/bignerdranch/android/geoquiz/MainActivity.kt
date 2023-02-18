@@ -1,7 +1,9 @@
 package com.bignerdranch.android.geoquiz
 
 import android.app.Activity
+import android.app.ActivityOptions
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -25,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nextButton: ImageButton
     private lateinit var questionTextView: TextView
     private lateinit var prevButton: ImageButton
+    private lateinit var cheatCountTextView: TextView
 
     private var quizScore = 0
     private var correctAnswerFlag = false
@@ -54,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         nextButton = findViewById(R.id.next_button)
         questionTextView = findViewById(R.id.question_text_view)
         prevButton = findViewById(R.id.prev_button)
+        cheatCountTextView = findViewById(R.id.cheat_available_text_view)
 
         trueButton.setOnClickListener {
             checkAnswer(true)
@@ -96,20 +100,34 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        cheatButton.setOnClickListener {
+        cheatButton.setOnClickListener { view ->
             // Start CheatActivity
             // val intent = Intent(this, CheatActivity::class.java)
             val answerIsTrue = quizViewModel.currentQuestionAnswer
+            quizViewModel.cheatAvailable = quizViewModel.cheatAvailable - 1 // reduces the number of times for cheating available with each click of cheatButton
+            cheatCountTextView.text = quizViewModel.cheatAvailable.toString()
+            if (quizViewModel.cheatAvailable == 0) {
+                cheatButton.isEnabled = false
+            }
             val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
-            // startActivity(intent)
-            startActivityForResult(
-                intent,
-                REQUEST_CODE_CHEAT,
-            ) // associates the CheatActivity and MainActivity with the code
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // SDK_INT constant is the device's version of Android, M stands for Marshmallow
+                val options =
+                    ActivityOptions.makeClipRevealAnimation(view, 0, 0, view.width, view.height) // method introduced in SDK API level 23
+                // startActivity(intent)
+                startActivityForResult(
+                    intent,
+                    REQUEST_CODE_CHEAT,
+                    options.toBundle(),
+                )
+            } else {
+                startActivityForResult(intent, REQUEST_CODE_CHEAT)
+            }
+            // associates the CheatActivity and MainActivity with the code
         }
 
         // puts the first question in the text view
         updateQuestion()
+        cheatCountTextView.text = quizViewModel.cheatAvailable.toString() // initial set up for number of cheatings available
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -200,7 +218,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun buttonDisable(enable: Boolean) {
         /* This function disables or enables the true and false choice button */
-        // todo - it needs to maintain status of button - enabled or disable on orientation changes
+        //  it needs to maintain status of button - enabled or disable on orientation changes
         trueButton.isEnabled = enable
         falseButton.isEnabled = enable
     }

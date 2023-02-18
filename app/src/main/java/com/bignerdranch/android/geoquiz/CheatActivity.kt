@@ -3,6 +3,7 @@ package com.bignerdranch.android.geoquiz
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -22,6 +23,7 @@ class CheatActivity : AppCompatActivity() {
 
     private lateinit var answerTextView: TextView
     private lateinit var showAnswerButton: Button
+    private lateinit var apiLevelTextView: TextView
 
     private var answerIsTrue = false
 
@@ -36,11 +38,15 @@ class CheatActivity : AppCompatActivity() {
 
         answerIsTrue = intent.getBooleanExtra(EXTRA_ANSWER_IS_TRUE, false)
 
-        quizViewModel.isCheater = savedInstanceState?.getBoolean(IF_CHEATED, false) ?: false //  isCheater value  is safe from orientation changes
+        // quizViewModel.isCheater = savedInstanceState?.getBoolean(IF_CHEATED, false) ?: false //  isCheater value  is safe from orientation changes
         Log.i(TAG, " cheatedOrNot ${quizViewModel.isCheater}")
 
         answerTextView = findViewById(R.id.answer_text_view)
         showAnswerButton = findViewById(R.id.show_answer_button)
+        apiLevelTextView = findViewById(R.id.show_api_level_text_view)
+
+        val apiText = "API Level ${Build.VERSION.SDK_INT}" // to set the current API level that device is running
+        apiLevelTextView.text = apiText
 
         showAnswerButton.setOnClickListener {
             quizViewModel.isCheater = true

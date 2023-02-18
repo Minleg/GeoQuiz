@@ -27,6 +27,7 @@ class QuizViewModel : ViewModel() {
     )
 
     var currentIndex = 0
+    var cheatAvailable = 3
 
     // to hold the value that CheatActivity is passing back
     var isCheater = false
